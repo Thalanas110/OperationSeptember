@@ -455,7 +455,8 @@ class PoemCard {
             
             if (isPlaying) {
                 ttsBtn.innerHTML = '<span class="tts-icon">🔊</span> Listen';
-            } else {
+            } 
+            else {
                 ttsBtn.innerHTML = '<span class="tts-icon">⏸️</span> Stop';
             }
             
@@ -468,7 +469,8 @@ class PoemCard {
         stars.forEach((star, index) => {
             if (index < this.poem.rating) {
                 star.classList.add('filled');
-            } else {
+            } 
+            else {
                 star.classList.remove('filled');
             }
         });
@@ -510,7 +512,8 @@ class PoemCard {
             if (this.poem.isFavorited) {
                 favoriteBtn.classList.add('favorited');
                 favoriteBtn.setAttribute('aria-label', 'Remove from favorites');
-            } else {
+            } 
+            else {
                 favoriteBtn.classList.remove('favorited');
                 favoriteBtn.setAttribute('aria-label', 'Add to favorites');
             }
@@ -535,7 +538,8 @@ class PoemCard {
         if (this.poem.isExpanded) {
             this.element.classList.add('expanded');
             this.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
+        } 
+        else {
             this.element.classList.remove('expanded');
         }
     }
