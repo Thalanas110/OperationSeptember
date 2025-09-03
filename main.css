@@ -155,7 +155,7 @@ body::before {
     border: 1px solid rgba(123, 167, 209, 0.8);
 }
 
-.sort-select, .theme-toggle, .export-btn {
+.sort-select, .theme-toggle, .export-btn, .favorites-filter {
     padding: 12px 20px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 25px;
@@ -167,21 +167,33 @@ body::before {
     backdrop-filter: blur(15px);
 }
 
-.theme-toggle, .export-btn {
+.theme-toggle, .export-btn, .favorites-filter {
     font-weight: 600;
     min-width: 50px;
 }
 
-.sort-select:hover, .theme-toggle:hover, .export-btn:hover {
+.favorites-filter.active {
+    background: var(--warm-brown);
+    color: white;
+    border: 1px solid var(--warm-brown);
+}
+
+.sort-select:hover, .theme-toggle:hover, .export-btn:hover, .favorites-filter:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px var(--shadow-light);
     background: rgba(255, 255, 255, 0.25);
     border: 1px solid rgba(139, 111, 71, 0.6);
 }
 
+.favorites-filter.active:hover {
+    background: var(--deep-navy);
+    border: 1px solid var(--deep-navy);
+}
+
 [data-theme="dark"] .sort-select:hover,
 [data-theme="dark"] .theme-toggle:hover,
-[data-theme="dark"] .export-btn:hover {
+[data-theme="dark"] .export-btn:hover,
+[data-theme="dark"] .favorites-filter:hover {
     background: rgba(44, 62, 80, 0.4);
     border: 1px solid rgba(139, 111, 71, 0.8);
 }
@@ -326,6 +338,41 @@ body::before {
     align-items: center;
     justify-content: center;
     transition: var(--transition-smooth);
+}
+
+.favorite-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--warm-brown);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.favorite-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px var(--shadow-light);
+}
+
+.favorite-btn.favorited {
+    background: var(--warm-brown);
+    color: white;
+}
+
+.favorite-btn.favorited:hover {
+    background: var(--deep-navy);
 }
 
 .poem-card.expanded .close-btn {

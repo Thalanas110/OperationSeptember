@@ -1,3 +1,51 @@
+class FavoriteManager {
+    static STORAGE_KEY = 'poetry-app-favorites';
+
+    static getFavorites() {
+        try {
+            const favorites = localStorage.getItem(this.STORAGE_KEY);
+            return favorites ? JSON.parse(favorites) : [];
+        } catch (error) {
+            console.error('Error reading favorites from localStorage:', error);
+            return [];
+        }
+    }
+
+    static addFavorite(poemId) {
+        try {
+            const favorites = this.getFavorites();
+            if (!favorites.includes(poemId)) {
+                favorites.push(poemId);
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
+            }
+        } catch (error) {
+            console.error('Error adding favorite to localStorage:', error);
+        }
+    }
+
+    static removeFavorite(poemId) {
+        try {
+            const favorites = this.getFavorites();
+            const filteredFavorites = favorites.filter(id => id !== poemId);
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredFavorites));
+        } catch (error) {
+            console.error('Error removing favorite from localStorage:', error);
+        }
+    }
+
+    static isFavorited(poemId) {
+        return this.getFavorites().includes(poemId);
+    }
+
+    static clearAllFavorites() {
+        try {
+            localStorage.removeItem(this.STORAGE_KEY);
+        } catch (error) {
+            console.error('Error clearing favorites from localStorage:', error);
+        }
+    }
+}
+
 class Poem {
 
     // id
@@ -7,6 +55,7 @@ class Poem {
         this.author = data.author;
         this.stanzas = data.stanzas;
         this.isExpanded = false;
+        this.isFavorited = FavoriteManager.isFavorited(this.id);
     }
 
     getPreview() {
@@ -20,13 +69,23 @@ class Poem {
     toggle() {
         this.isExpanded = !this.isExpanded;
     }
+
+    toggleFavorite() {
+        this.isFavorited = !this.isFavorited;
+        if (this.isFavorited) {
+            FavoriteManager.addFavorite(this.id);
+        } else {
+            FavoriteManager.removeFavorite(this.id);
+        }
+    }
 }
 
 // more oop
 class PoemCard {
-    constructor(poem, onToggle) {
+    constructor(poem, onToggle, onFavoriteToggle = null) {
         this.poem = poem;
         this.onToggle = onToggle;
+        this.onFavoriteToggle = onFavoriteToggle;
         this.element = this.createElement();
     }
 
@@ -36,6 +95,7 @@ class PoemCard {
         card.setAttribute('data-poem-id', this.poem.id);
         
         card.innerHTML = `
+            <button class="favorite-btn" aria-label="Toggle favorite">♥</button>
             <button class="close-btn" aria-label="Close poem">&times;</button>
             <h2 class="poem-title">${this.poem.title}</h2>
             <p class="poem-author">by ${this.poem.author}</p>
@@ -43,8 +103,11 @@ class PoemCard {
             <div class="poem-full">${this.poem.getFullText()}</div>
         `;
 
+        // Update favorite button appearance
+        this.updateFavoriteButton(card);
+
         card.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('close-btn')) {
+            if (!e.target.classList.contains('close-btn') && !e.target.classList.contains('favorite-btn')) {
                 this.toggleExpanded();
             }
         });
@@ -54,7 +117,35 @@ class PoemCard {
             this.collapse();
         });
 
+        card.querySelector('.favorite-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFavorite();
+        });
+
         return card;
+    }
+
+    toggleFavorite() {
+        this.poem.toggleFavorite();
+        this.updateFavoriteButton(this.element);
+        
+        // Trigger any callback if needed
+        if (this.onFavoriteToggle) {
+            this.onFavoriteToggle(this.poem);
+        }
+    }
+
+    updateFavoriteButton(cardElement) {
+        const favoriteBtn = cardElement.querySelector('.favorite-btn');
+        if (favoriteBtn) {
+            if (this.poem.isFavorited) {
+                favoriteBtn.classList.add('favorited');
+                favoriteBtn.setAttribute('aria-label', 'Remove from favorites');
+            } else {
+                favoriteBtn.classList.remove('favorited');
+                favoriteBtn.setAttribute('aria-label', 'Add to favorites');
+            }
+        }
     }
 
     toggleExpanded() {
@@ -223,6 +314,8 @@ class PoemCollection {
         this.container = document.getElementById('poemContainer');
         this.searchInput = document.getElementById('searchInput');
         this.sortSelect = document.getElementById('sortSelect');
+        this.favoritesFilter = document.getElementById('favoritesFilter');
+        this.showingFavoritesOnly = false;
         
         this.init();
     }
@@ -235,7 +328,11 @@ class PoemCollection {
 
     createPoemCards() {
         this.poemCards = this.poems.map(poem => 
-            new PoemCard(poem, (toggledPoem) => this.handlePoemToggle(toggledPoem))
+            new PoemCard(
+                poem, 
+                (toggledPoem) => this.handlePoemToggle(toggledPoem),
+                (toggledPoem) => this.handleFavoriteToggle(toggledPoem)
+            )
         );
         this.filteredCards = [...this.poemCards];
     }
@@ -255,25 +352,61 @@ class PoemCollection {
         });
     }
 
+    handleFavoriteToggle(toggledPoem) {
+        // If we're showing favorites only and this poem was unfavorited, re-filter
+        if (this.showingFavoritesOnly) {
+            this.applyCurrentFilters();
+        }
+    }
+
     setupEventListeners() {
         this.searchInput.addEventListener('input', (e) => {
-            this.filterPoems(e.target.value);
+            this.applyCurrentFilters();
         });
 
         this.sortSelect.addEventListener('change', (e) => {
             this.sortPoems(e.target.value);
         });
+
+        this.favoritesFilter.addEventListener('click', () => {
+            this.toggleFavoritesFilter();
+        });
+    }
+
+    toggleFavoritesFilter() {
+        this.showingFavoritesOnly = !this.showingFavoritesOnly;
+        
+        if (this.showingFavoritesOnly) {
+            this.favoritesFilter.classList.add('active');
+            this.favoritesFilter.textContent = '🏠 Show All';
+        } else {
+            this.favoritesFilter.classList.remove('active');
+            this.favoritesFilter.textContent = '❤️ Show Favorites';
+        }
+        
+        this.applyCurrentFilters();
+    }
+
+    applyCurrentFilters() {
+        const query = this.searchInput.value;
+        let cards = [...this.poemCards];
+
+        // Apply search filter
+        if (query.trim()) {
+            cards = cards.filter(card => card.matchesSearch(query));
+        }
+
+        // Apply favorites filter
+        if (this.showingFavoritesOnly) {
+            cards = cards.filter(card => card.poem.isFavorited);
+        }
+
+        this.filteredCards = cards;
+        this.renderPoems();
     }
 
     filterPoems(query) {
-        if (!query.trim()) {
-            this.filteredCards = [...this.poemCards];
-        } else {
-            this.filteredCards = this.poemCards.filter(card => 
-                card.matchesSearch(query)
-            );
-        }
-        this.renderPoems();
+        this.applyCurrentFilters();
     }
 
     sortPoems(criteria) {
