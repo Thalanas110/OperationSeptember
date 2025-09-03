@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>September 26 Offensive Operations</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <h1 class="app-title">I lovee youu soo muchhh poo bebiii kooo :DD</h1>
+            <br>
+            <h2 class="app-subtitle-1">Please select a poem to view.</h2>
+            <br>
+            <h4 class="app-subtitle-2">(<i>as of now, all "elena nightingale" poems are placeholders only for what's to come</i>)</h4>
+            <br>
+            <div class="controls">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search poems..." class="search-input">
+                </div>
+                <select id="sortSelect" class="sort-select">
+                    <option value="title">Sort by Title</option>
+                    <option value="author">Sort by Author</option>
+                </select>
+                <button id="themeToggle" class="theme-toggle">🌙</button>
+                <button id="exportPdf" class="export-btn">Export PDF</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div id="poemContainer" class="poem-grid"></div>
+        </main>
+
+        <button id="scrollToTop" class="scroll-to-top hidden">↑</button>
+    </div>
+
+    <script src="poems.js"></script>
+    <script src="logic.js"></script>
+</body>
+</html>
