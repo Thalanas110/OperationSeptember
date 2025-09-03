@@ -301,7 +301,7 @@ body::before {
 .poem-title {
     font-size: 1.4rem;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin: 10px 0 8px 0; /* Adjust margin to account for poem-meta spacing */
     color: var(--text-primary);
     text-align: center;
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
@@ -407,9 +407,10 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin: 55px 0 10px 0; /* Add top margin to clear the favorite button */
     font-size: 0.9rem;
     color: var(--text-secondary);
+    padding: 0 15px; /* Add padding to avoid edge overlap */
 }
 
 .reading-time {
@@ -574,6 +575,18 @@ body::before {
     
     .poem-card {
         padding: 20px;
+    }
+    
+    /* Adjust poem-meta spacing for mobile */
+    .poem-meta {
+        margin: 50px 0 10px 0; /* Slightly less top margin for mobile */
+        padding: 0 10px;
+    }
+    
+    .favorite-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
     }
 }
 
