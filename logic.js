@@ -121,13 +121,20 @@ class ThemeManager {
     }
 
     applyTheme() {
-        if (this.isDark) {
-            document.body.setAttribute('data-theme', 'dark');
-            this.button.textContent = '☀️';
-        } else {
-            document.body.removeAttribute('data-theme');
-            this.button.textContent = '🌙';
+        try {
+            if (this.isDark) {
+                document.body.setAttribute('data-theme', 'dark');
+                this.button.textContent = '☀️';
+            } 
+            else {
+                document.body.removeAttribute('data-theme');
+                this.button.textContent = '🌙';
+            }
+        } 
+        catch (error) {
+            console.error('Error applying theme:', error);
         }
+
     }
 }
 
@@ -148,7 +155,8 @@ class ScrollManager {
         
         if (scrolled > threshold) {
             this.button.classList.remove('hidden');
-        } else {
+        } 
+        else {
             this.button.classList.add('hidden');
         }
     }
@@ -202,7 +210,8 @@ class PDFExporter {
                     card.classList.remove('expanded');
                 }
             });
-        }, 1000);
+        }, 
+        1000);
     }
 }
 
