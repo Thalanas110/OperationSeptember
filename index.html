@@ -6,6 +6,25 @@
     <!--<title>September 26 Offensive Operations</title>-->
     <title>placeholder text</title> <!--replace this with the commented one above-->
     <link rel="stylesheet" href="main.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#7BA7D1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Poetry App">
+    <meta name="description" content="A beautiful poetry collection with favorites, reading progress, and offline support">
+    
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192x192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-72x72.png">
 </head>
 <body>
     <div class="app-container">
@@ -27,6 +46,8 @@
                 <button id="favoritesFilter" class="favorites-filter">❤️ Show Favorites</button>
                 <button id="themeToggle" class="theme-toggle">🌙</button>
                 <button id="exportPdf" class="export-btn">Export PDF</button>
+                <button id="installApp" class="install-btn hidden">📱 Install App</button>
+                <div id="offlineStatus" class="offline-status hidden">🔴 Offline</div>
             </div>
         </header>
 
@@ -39,5 +60,105 @@
 
     <script src="poems.js"></script>
     <script src="logic.js"></script>
+    
+    <!-- PWA Installation and Service Worker -->
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Show update available notification
+                                    if (confirm('New version available! Reload to update?')) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installButton = document.getElementById('installApp');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA install prompt triggered');
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.classList.remove('hidden');
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`PWA install outcome: ${outcome}`);
+                deferredPrompt = null;
+                installButton.classList.add('hidden');
+            }
+        });
+
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('PWA was installed');
+            installButton.classList.add('hidden');
+        });
+
+        // Online/Offline Status
+        const offlineStatus = document.getElementById('offlineStatus');
+        
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                offlineStatus.classList.add('hidden');
+                offlineStatus.innerHTML = '🟢 Online';
+            } else {
+                offlineStatus.classList.remove('hidden');
+                offlineStatus.innerHTML = '🔴 Offline';
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus(); // Initial check
+
+        // Handle URL parameters for shortcuts
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.get('view') === 'favorites') {
+                // Trigger favorites filter when app loads
+                setTimeout(() => {
+                    const favButton = document.getElementById('favoritesFilter');
+                    if (favButton && !favButton.classList.contains('active')) {
+                        favButton.click();
+                    }
+                }, 1000);
+            }
+            
+            if (urlParams.get('random') === 'true') {
+                // Show a random poem when app loads
+                setTimeout(() => {
+                    const poemCards = document.querySelectorAll('.poem-card');
+                    if (poemCards.length > 0) {
+                        const randomCard = poemCards[Math.floor(Math.random() * poemCards.length)];
+                        randomCard.click();
+                        randomCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 1000);
+            }
+        });
+    </script>
 </body>
 </html>

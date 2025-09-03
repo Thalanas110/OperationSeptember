@@ -1,5 +1,6 @@
 class FavoriteManager {
     static STORAGE_KEY = 'poetry-app-favorites';
+    static PENDING_KEY = 'pending-favorites';
 
     static getFavorites() {
         try {
@@ -18,6 +19,11 @@ class FavoriteManager {
             if (!favorites.includes(poemId)) {
                 favorites.push(poemId);
                 localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
+                
+                // For PWA: Add to pending sync if offline
+                if (!navigator.onLine && 'serviceWorker' in navigator) {
+                    this.addToPendingSync('add', poemId);
+                }
             }
         } 
         catch (error) {
@@ -30,9 +36,31 @@ class FavoriteManager {
             const favorites = this.getFavorites();
             const filteredFavorites = favorites.filter(id => id !== poemId);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredFavorites));
+            
+            // For PWA: Add to pending sync if offline
+            if (!navigator.onLine && 'serviceWorker' in navigator) {
+                this.addToPendingSync('remove', poemId);
+            }
         } 
         catch (error) {
             console.error('Error removing favorite from localStorage:', error);
+        }
+    }
+
+    static addToPendingSync(action, poemId) {
+        try {
+            const pending = JSON.parse(localStorage.getItem(this.PENDING_KEY) || '[]');
+            pending.push({ action, poemId, timestamp: Date.now() });
+            localStorage.setItem(this.PENDING_KEY, JSON.stringify(pending));
+            
+            // Register background sync
+            if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+                navigator.serviceWorker.ready.then(registration => {
+                    return registration.sync.register('background-sync-favorites');
+                });
+            }
+        } catch (error) {
+            console.error('Error adding to pending sync:', error);
         }
     }
 
@@ -795,8 +823,177 @@ class PoetryApp {
         this.ttsManager = new TextToSpeechManager();
         this.poemCollection = new PoemCollection();
         
+        // PWA specific initialization
+        this.initPWAFeatures();
+        
         // Make TTS manager globally accessible
         window.app = this;
+    }
+    
+    initPWAFeatures() {
+        // Listen for PWA install events
+        this.setupInstallPrompt();
+        
+        // Setup offline/online status
+        this.setupConnectivityStatus();
+        
+        // Setup update notifications
+        this.setupUpdateNotifications();
+        
+        // Setup keyboard shortcuts for PWA
+        this.setupPWAKeyboardShortcuts();
+    }
+    
+    setupInstallPrompt() {
+        // This is handled in the HTML inline script, but we can add additional logic here
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA installed successfully');
+            // You could show a welcome message or tutorial here
+            this.showInstallSuccessMessage();
+        });
+    }
+    
+    setupConnectivityStatus() {
+        const updateStatus = () => {
+            const statusEl = document.getElementById('offlineStatus');
+            if (!statusEl) return;
+            
+            if (navigator.onLine) {
+                statusEl.classList.add('hidden');
+                // Trigger any pending syncs
+                this.triggerPendingSyncs();
+            } else {
+                statusEl.classList.remove('hidden');
+                statusEl.innerHTML = '🔴 Offline Mode';
+            }
+        };
+        
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+    }
+    
+    setupUpdateNotifications() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                // Show update notification
+                this.showUpdateNotification();
+            });
+        }
+    }
+    
+    setupPWAKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K for search focus
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+            
+            // Ctrl/Cmd + F for favorites
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                const favButton = document.getElementById('favoritesFilter');
+                if (favButton) favButton.click();
+            }
+            
+            // Ctrl/Cmd + T for theme toggle
+            if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+                e.preventDefault();
+                const themeButton = document.getElementById('themeToggle');
+                if (themeButton) themeButton.click();
+            }
+        });
+    }
+    
+    triggerPendingSyncs() {
+        // Trigger background sync for any pending operations
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+            navigator.serviceWorker.ready.then(registration => {
+                const syncTags = ['background-sync-favorites', 'background-sync-ratings', 'background-sync-progress'];
+                syncTags.forEach(tag => {
+                    registration.sync.register(tag).catch(err => {
+                        console.log('Background sync registration failed:', err);
+                    });
+                });
+            });
+        }
+    }
+    
+    showInstallSuccessMessage() {
+        // Create and show a temporary success message
+        const message = document.createElement('div');
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-blue);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        `;
+        message.innerHTML = '🎉 Poetry App installed successfully!';
+        document.body.appendChild(message);
+        
+        // Animate in
+        setTimeout(() => {
+            message.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            message.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
+            }, 300);
+        }, 3000);
+    }
+    
+    showUpdateNotification() {
+        // Show update available notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--warm-brown);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            text-align: center;
+        `;
+        notification.innerHTML = `
+            <div>App updated! Restart to see new features.</div>
+            <button onclick="window.location.reload()" style="
+                background: rgba(255,255,255,0.2);
+                border: 1px solid rgba(255,255,255,0.3);
+                color: white;
+                padding: 5px 15px;
+                border-radius: 4px;
+                margin-top: 8px;
+                cursor: pointer;
+            ">Restart Now</button>
+        `;
+        document.body.appendChild(notification);
+        
+        // Remove after 10 seconds if not clicked
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 10000);
     }
 }
 

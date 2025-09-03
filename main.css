@@ -625,3 +625,103 @@ body::before {
 .poem-card {
     animation: fadeIn 0.6s ease-out;
 }
+
+/* PWA Specific Styles */
+.install-btn {
+    background: linear-gradient(135deg, var(--primary-blue), var(--warm-brown));
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    box-shadow: 0 2px 8px var(--shadow-light);
+}
+
+.install-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px var(--shadow-light);
+}
+
+.install-btn:active {
+    transform: translateY(0);
+}
+
+.offline-status {
+    background: rgba(255, 0, 0, 0.1);
+    color: #d32f2f;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 0, 0, 0.2);
+    animation: pulse 2s infinite;
+}
+
+[data-theme="dark"] .offline-status {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff6b6b;
+}
+
+.offline-status.online {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+    border-color: rgba(76, 175, 80, 0.2);
+    animation: none;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* PWA Splash Screen Styles */
+@media (display-mode: standalone) {
+    body {
+        /* Remove any browser-specific padding when in standalone mode */
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .main-header {
+        /* Add extra padding for PWA mode */
+        padding-top: 20px;
+    }
+}
+
+/* iOS PWA Status Bar */
+@supports (-webkit-touch-callout: none) {
+    @media (display-mode: standalone) {
+        .main-header {
+            padding-top: max(20px, env(safe-area-inset-top));
+        }
+    }
+}
+
+/* Update responsive controls for PWA elements */
+@media (max-width: 768px) {
+    .controls {
+        gap: 8px;
+    }
+    
+    .install-btn,
+    .offline-status {
+        font-size: 0.8rem;
+        padding: 8px 10px;
+    }
+    
+    .controls button {
+        min-width: auto;
+        padding: 8px 10px;
+    }
+}
