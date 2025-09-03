@@ -59,7 +59,8 @@ class FavoriteManager {
                     return registration.sync.register('background-sync-favorites');
                 });
             }
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Error adding to pending sync:', error);
         }
     }
@@ -288,13 +289,6 @@ class Poem {
         return this.stanzas.join('\n\n');
     }
 
-    getReadingTime() {
-        const wordsPerMinute = 200;
-        const wordCount = this.getFullText().split(/\s+/).length;
-        const minutes = Math.ceil(wordCount / wordsPerMinute);
-        return minutes;
-    }
-
     updateProgress(progress) {
         this.readingProgress.progress = progress;
         this.readingProgress.status = progress >= 100 ? 'read' : progress > 0 ? 'reading' : 'new';
@@ -340,7 +334,6 @@ class PoemCard {
         card.className = 'poem-card';
         card.setAttribute('data-poem-id', this.poem.id);
         
-        const readingTime = this.poem.getReadingTime();
         const progress = this.poem.readingProgress;
         
         card.innerHTML = `
@@ -349,7 +342,6 @@ class PoemCard {
             <button class="close-btn" aria-label="Close poem">&times;</button>
             
             <div class="poem-meta">
-                <span class="reading-time">${readingTime} min read</span>
                 <div class="rating-container">
                     ${this.createStarRating()}
                 </div>
