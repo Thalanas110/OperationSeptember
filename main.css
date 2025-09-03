@@ -405,15 +405,19 @@ body::before {
 /* Reading Progress and New Features */
 .poem-meta {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end; /* Align rating to the right */
     align-items: center;
     margin: 55px 0 10px 0; /* Add top margin to clear the favorite button */
     font-size: 0.9rem;
     color: var(--text-secondary);
     padding: 0 15px; /* Add padding to avoid edge overlap */
+    position: relative; /* For absolute positioning of reading time */
 }
 
 .reading-time {
+    position: absolute;
+    top: -35px; /* Move reading time above the meta section */
+    left: 15px;
     background: rgba(123, 167, 209, 0.2);
     padding: 4px 8px;
     border-radius: 12px;
@@ -581,6 +585,12 @@ body::before {
     .poem-meta {
         margin: 50px 0 10px 0; /* Slightly less top margin for mobile */
         padding: 0 10px;
+    }
+    
+    .reading-time {
+        top: -30px; /* Adjust position for mobile */
+        left: 10px;
+        font-size: 0.75rem; /* Slightly smaller on mobile */
     }
     
     .favorite-btn {
