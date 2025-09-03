@@ -1,8 +1,10 @@
-const poemsData = [
+const poemsData = 
+// arrays because fuck arrays, all "Elena Nightingale" poems are placeholders only for what's to come
+[
     {
         id: 1,
-        title: "Whispers of Dawn",
-        author: "Elena Nightingale",
+        title: "placeholder poem 1",
+        author: "Poems Under Construction",
         stanzas: [
             "In the gentle light of morning's birth,\nWhere shadows dance with golden rays,",
             "The world awakens from its slumber deep,\nAs nature paints the sky in amber haze,",
@@ -14,8 +16,8 @@ const poemsData = [
     },
     {
         id: 2,
-        title: "Ocean's Lullaby",
-        author: "Elena Nightingale",
+        title: "placeholder poem 2",
+        author: "Poems Under Construction",
         stanzas: [
             "Beneath the moonlit silver waves,\nWhere mermaids weave their ancient songs,",
             "The ocean tells its timeless tales,\nOf love and loss, of rights and wrongs,",
@@ -27,8 +29,8 @@ const poemsData = [
     },
     {
         id: 3,
-        title: "Autumn's Embrace",
-        author: "Elena Nightingale",
+        title: "placeholder poem 3",
+        author: "Poems Under Construction",
         stanzas: [
             "When leaves transform to gold and red,\nAnd autumn's breath grows crisp and clear,",
             "The trees release their summer crowns,\nTo mark the closing of the year,",
@@ -40,8 +42,8 @@ const poemsData = [
     },
     {
         id: 4,
-        title: "Starlight Serenade",
-        author: "Elena Nightingale",
+        title: "placeholder poem 4",
+        author: "Poems Under Construction",
         stanzas: [
             "Among the constellation's dance,\nWhere starlight weaves its silver thread,",
             "The universe unfolds its arms,\nAbove our small and humble bed,",
@@ -53,8 +55,8 @@ const poemsData = [
     },
     {
         id: 5,
-        title: "Garden of Dreams",
-        author: "Elena Nightingale",
+        title: "placeholder poem 5",
+        author: "Poems Under Construction",
         stanzas: [
             "In secret gardens of the mind,\nWhere roses bloom in endless spring,",
             "The heart plants seeds of hope and love,\nAnd tends to every growing thing,",
@@ -66,8 +68,8 @@ const poemsData = [
     },
     {
         id: 6,
-        title: "Mountain's Majesty",
-        author: "Elena Nightingale",
+        title: "placeholder poem 6",
+        author: "Poems Under Construction",
         stanzas: [
             "Upon the peaks where eagles soar,\nAnd clouds embrace the mountain's crown,",
             "The ancient stones hold wisdom deep,\nFrom ages past to current town,",
@@ -79,8 +81,8 @@ const poemsData = [
     },
     {
         id: 7,
-        title: "River's Journey",
-        author: "Elena Nightingale",
+        title: "placeholder poem 7",
+        author: "Poems Under Construction",
         stanzas: [
             "From mountain spring to ocean vast,\nThe river carves its destined way,",
             "Through meadows green and valleys wide,\nIt dances on from night to day,",
@@ -92,8 +94,8 @@ const poemsData = [
     },
     {
         id: 8,
-        title: "Desert Bloom",
-        author: "Elena Nightingale",
+        title: "placeholder poem 8",
+        author: "Poems Under Construction",
         stanzas: [
             "In lands where sand meets endless sky,\nAnd heat waves dance in mirage dreams,",
             "The desert holds its secret life,\nIn hidden valleys, underground streams,",
@@ -105,8 +107,8 @@ const poemsData = [
     },
     {
         id: 9,
-        title: "Winter's Grace",
-        author: "Elena Nightingale",
+        title: "placeholder poem 9",
+        author: "Poems Under Construction",
         stanzas: [
             "When snowflakes fall like angel's tears,\nAnd ice transforms the world to white,",
             "The earth lies sleeping 'neath her quilt,\nPreparing for the spring's delight,",
@@ -118,8 +120,8 @@ const poemsData = [
     },
     {
         id: 10,
-        title: "City Lights",
-        author: "Elena Nightingale",
+        title: "placeholder poem 10",
+        author: "Poems Under Construction",
         stanzas: [
             "Where neon signs light up the night,\nAnd millions chase their urban dreams,",
             "The city hums with restless life,\nAnd nothing's quite the way it seems,",
@@ -131,8 +133,8 @@ const poemsData = [
     },
     {
         id: 11,
-        title: "Butterfly Dance",
-        author: "Elena Nightingale",
+        title: "placeholder poem 11",
+        author: "Poems Under Construction",
         stanzas: [
             "On wings of silk and morning dew,\nThe butterflies begin their flight,",
             "From flower cup to flower cup,\nThey paint the garden with delight,",
@@ -144,8 +146,8 @@ const poemsData = [
     },
     {
         id: 12,
-        title: "Midnight's Peace",
-        author: "Elena Nightingale",
+        title: "placeholder poem 12",
+        author: "Poems Under Construction",
         stanzas: [
             "When darkness wraps the world in calm,\nAnd midnight strikes its sacred hour,",
             "The moon looks down with gentle eyes,\nAnd grants the night its healing power,",
