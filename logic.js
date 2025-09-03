@@ -5,7 +5,8 @@ class FavoriteManager {
         try {
             const favorites = localStorage.getItem(this.STORAGE_KEY);
             return favorites ? JSON.parse(favorites) : [];
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Error reading favorites from localStorage:', error);
             return [];
         }
@@ -18,7 +19,8 @@ class FavoriteManager {
                 favorites.push(poemId);
                 localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
             }
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Error adding favorite to localStorage:', error);
         }
     }
@@ -28,7 +30,8 @@ class FavoriteManager {
             const favorites = this.getFavorites();
             const filteredFavorites = favorites.filter(id => id !== poemId);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredFavorites));
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Error removing favorite from localStorage:', error);
         }
     }
@@ -40,14 +43,203 @@ class FavoriteManager {
     static clearAllFavorites() {
         try {
             localStorage.removeItem(this.STORAGE_KEY);
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Error clearing favorites from localStorage:', error);
         }
     }
 }
 
-class Poem {
+class ReadingProgressManager {
+    static STORAGE_KEY = 'poetry-app-progress';
 
+    static getProgress() {
+        try {
+            const progress = localStorage.getItem(this.STORAGE_KEY);
+            return progress ? JSON.parse(progress) : {};
+        } 
+        catch (error) {
+            console.error('Error reading progress from localStorage:', error);
+            return {};
+        }
+    }
+
+    static updateProgress(poemId, progress) {
+        try {
+            const allProgress = this.getProgress();
+            allProgress[poemId] = {
+                progress: Math.min(100, Math.max(0, progress)),
+                lastRead: new Date().toISOString(),
+                status: progress >= 100 ? 'read' : progress > 0 ? 'reading' : 'new'
+            };
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(allProgress));
+        } 
+        catch (error) {
+            console.error('Error updating progress:', error);
+        }
+    }
+
+    static getProgressForPoem(poemId) {
+        const progress = this.getProgress();
+        return progress[poemId] || { progress: 0, status: 'new' };
+    }
+}
+
+class RatingManager {
+    static STORAGE_KEY = 'poetry-app-ratings';
+
+    static getRatings() {
+        try {
+            const ratings = localStorage.getItem(this.STORAGE_KEY);
+            return ratings ? JSON.parse(ratings) : {};
+        } 
+        catch (error) {
+            console.error('Error reading ratings from localStorage:', error);
+            return {};
+        }
+    }
+
+    static setRating(poemId, rating) {
+        try {
+            const ratings = this.getRatings();
+            ratings[poemId] = Math.min(5, Math.max(1, rating));
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(ratings));
+        } 
+        catch (error) {
+            console.error('Error saving rating:', error);
+        }
+    }
+
+    static getRating(poemId) {
+        const ratings = this.getRatings();
+        return ratings[poemId] || 0;
+    }
+}
+
+class TextToSpeechManager {
+    constructor() {
+        this.synth = window.speechSynthesis;
+        this.utterance = null;
+        this.isPlaying = false;
+        this.currentPoem = null;
+    }
+
+    speak(text, poemId) {
+        if (this.isPlaying && this.currentPoem === poemId) {
+            this.stop();
+            return;
+        }
+
+        this.stop(); // Stop any current speech
+        
+        this.utterance = new SpeechSynthesisUtterance(text);
+        this.utterance.rate = 0.8;
+        this.utterance.pitch = 1;
+        this.utterance.volume = 0.8;
+        
+        this.utterance.onstart = () => {
+            this.isPlaying = true;
+            this.currentPoem = poemId;
+        };
+        
+        this.utterance.onend = () => {
+            this.isPlaying = false;
+            this.currentPoem = null;
+        };
+        
+        this.synth.speak(this.utterance);
+    }
+
+    stop() {
+        if (this.synth.speaking) {
+            this.synth.cancel();
+        }
+        this.isPlaying = false;
+        this.currentPoem = null;
+    }
+
+    isCurrentlyPlaying(poemId) {
+        return this.isPlaying && this.currentPoem === poemId;
+    }
+}
+
+class ShareManager {
+    static sharePoem(poem, quote = null) {
+        const text = quote || poem.getPreview();
+        const shareText = `"${text}"\n\n- ${poem.title} by ${poem.author}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: poem.title,
+                text: shareText,
+                url: window.location.href
+            });
+        } 
+        else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(shareText).then(() => {
+                alert('Poem copied to clipboard!');
+            }).catch(() => {
+                // Final fallback: show in alert
+                alert(`Share this poem:\n\n${shareText}`);
+            });
+        }
+    }
+
+    static generateQuoteImage(poem, quote) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = 800;
+        canvas.height = 600;
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, '#7BA7D1');
+        gradient.addColorStop(1, '#8B6F47');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Text styling
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.font = '24px Georgia, serif';
+        
+        // Quote text (wrapped)
+        const words = quote.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+            const testLine = currentLine + word + ' ';
+            if (ctx.measureText(testLine).width > canvas.width - 100 && currentLine !== '') {
+                lines.push(currentLine);
+                currentLine = word + ' ';
+            } else {
+                currentLine = testLine;
+            }
+        }
+        lines.push(currentLine);
+        
+        // Draw quote
+        const startY = canvas.height / 2 - (lines.length * 30) / 2;
+        lines.forEach((line, index) => {
+            ctx.fillText(`"${line}"`, canvas.width / 2, startY + index * 35);
+        });
+        
+        // Attribution
+        ctx.font = '18px Georgia, serif';
+        ctx.fillText(`- ${poem.title} by ${poem.author}`, canvas.width / 2, startY + lines.length * 35 + 50);
+        
+        // Download
+        const link = document.createElement('a');
+        link.download = `${poem.title.replace(/\s+/g, '_')}_quote.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+}
+
+class Poem {
     // id
     constructor(data) {
         this.id = data.id;
@@ -56,6 +248,8 @@ class Poem {
         this.stanzas = data.stanzas;
         this.isExpanded = false;
         this.isFavorited = FavoriteManager.isFavorited(this.id);
+        this.readingProgress = ReadingProgressManager.getProgressForPoem(this.id);
+        this.rating = RatingManager.getRating(this.id);
     }
 
     getPreview() {
@@ -66,8 +260,32 @@ class Poem {
         return this.stanzas.join('\n\n');
     }
 
+    getReadingTime() {
+        const wordsPerMinute = 200;
+        const wordCount = this.getFullText().split(/\s+/).length;
+        const minutes = Math.ceil(wordCount / wordsPerMinute);
+        return minutes;
+    }
+
+    updateProgress(progress) {
+        this.readingProgress.progress = progress;
+        this.readingProgress.status = progress >= 100 ? 'read' : progress > 0 ? 'reading' : 'new';
+        ReadingProgressManager.updateProgress(this.id, progress);
+    }
+
+    setRating(rating) {
+        this.rating = rating;
+        RatingManager.setRating(this.id, rating);
+    }
+
     toggle() {
         this.isExpanded = !this.isExpanded;
+        if (this.isExpanded) {
+            // Mark as reading when expanded
+            if (this.readingProgress.progress === 0) {
+                this.updateProgress(25);
+            }
+        }
     }
 
     toggleFavorite() {
@@ -94,35 +312,166 @@ class PoemCard {
         card.className = 'poem-card';
         card.setAttribute('data-poem-id', this.poem.id);
         
+        const readingTime = this.poem.getReadingTime();
+        const progress = this.poem.readingProgress;
+        
         card.innerHTML = `
+            <div class="poem-status ${progress.status}">${progress.status}</div>
             <button class="favorite-btn" aria-label="Toggle favorite">♥</button>
             <button class="close-btn" aria-label="Close poem">&times;</button>
+            
+            <div class="poem-meta">
+                <span class="reading-time">${readingTime} min read</span>
+                <div class="rating-container">
+                    ${this.createStarRating()}
+                </div>
+            </div>
+            
             <h2 class="poem-title">${this.poem.title}</h2>
             <p class="poem-author">by ${this.poem.author}</p>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progress.progress}%"></div>
+            </div>
+            
             <div class="poem-preview">${this.poem.getPreview()}</div>
             <div class="poem-full">${this.poem.getFullText()}</div>
+            
+            <div class="poem-actions">
+                <button class="action-btn tts-btn" data-action="tts">
+                    <span class="tts-icon">🔊</span> Listen
+                </button>
+                <button class="action-btn share-btn" data-action="share">
+                    📤 Share
+                </button>
+                <button class="action-btn quote-btn" data-action="quote">
+                    🖼️ Quote Image
+                </button>
+                <button class="action-btn progress-btn" data-action="progress">
+                    ✅ Mark as Read
+                </button>
+            </div>
         `;
 
         // Update favorite button appearance
         this.updateFavoriteButton(card);
+        this.setupEventListeners(card);
 
+        return card;
+    }
+
+    createStarRating() {
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+            const filled = i <= this.poem.rating ? 'filled' : '';
+            stars += `<span class="star ${filled}" data-rating="${i}">★</span>`;
+        }
+        return stars;
+    }
+
+    setupEventListeners(card) {
+        // Main card click
         card.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('close-btn') && !e.target.classList.contains('favorite-btn')) {
+            if (!e.target.closest('.close-btn, .favorite-btn, .action-btn, .star')) {
                 this.toggleExpanded();
             }
         });
 
+        // Close button
         card.querySelector('.close-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             this.collapse();
         });
 
+        // Favorite button
         card.querySelector('.favorite-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleFavorite();
         });
 
-        return card;
+        // Star rating
+        card.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const rating = parseInt(e.target.dataset.rating);
+                this.poem.setRating(rating);
+                this.updateStarRating(card);
+            });
+        });
+
+        // Action buttons
+        card.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleAction(e.target.dataset.action || e.target.closest('.action-btn').dataset.action);
+            });
+        });
+    }
+
+    handleAction(action) {
+        switch (action) {
+            case 'tts':
+                this.handleTextToSpeech();
+                break;
+            case 'share':
+                ShareManager.sharePoem(this.poem);
+                break;
+            case 'quote':
+                ShareManager.generateQuoteImage(this.poem, this.poem.getPreview());
+                break;
+            case 'progress':
+                this.poem.updateProgress(100);
+                this.updateProgress();
+                break;
+        }
+    }
+
+    handleTextToSpeech() {
+        const ttsBtn = this.element.querySelector('.tts-btn');
+        const text = this.poem.isExpanded ? this.poem.getFullText() : this.poem.getPreview();
+        
+        if (window.app && window.app.ttsManager) {
+            const isPlaying = window.app.ttsManager.isCurrentlyPlaying(this.poem.id);
+            
+            if (isPlaying) {
+                ttsBtn.innerHTML = '<span class="tts-icon">🔊</span> Listen';
+            } else {
+                ttsBtn.innerHTML = '<span class="tts-icon">⏸️</span> Stop';
+            }
+            
+            window.app.ttsManager.speak(text, this.poem.id);
+        }
+    }
+
+    updateStarRating(card) {
+        const stars = card.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < this.poem.rating) {
+                star.classList.add('filled');
+            } else {
+                star.classList.remove('filled');
+            }
+        });
+    }
+
+    updateProgress() {
+        const progressFill = this.element.querySelector('.progress-fill');
+        const statusEl = this.element.querySelector('.poem-status');
+        const progressBtn = this.element.querySelector('.progress-btn');
+        
+        if (progressFill) {
+            progressFill.style.width = `${this.poem.readingProgress.progress}%`;
+        }
+        
+        if (statusEl) {
+            statusEl.className = `poem-status ${this.poem.readingProgress.status}`;
+            statusEl.textContent = this.poem.readingProgress.status;
+        }
+        
+        if (progressBtn && this.poem.readingProgress.progress >= 100) {
+            progressBtn.innerHTML = '✅ Read';
+            progressBtn.disabled = true;
+        }
     }
 
     toggleFavorite() {
@@ -443,7 +792,11 @@ class PoetryApp {
         this.themeManager = new ThemeManager();
         this.scrollManager = new ScrollManager();
         this.pdfExporter = new PDFExporter();
+        this.ttsManager = new TextToSpeechManager();
         this.poemCollection = new PoemCollection();
+        
+        // Make TTS manager globally accessible
+        window.app = this;
     }
 }
 

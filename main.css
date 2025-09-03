@@ -198,6 +198,33 @@ body::before {
     border: 1px solid rgba(139, 111, 71, 0.8);
 }
 
+[data-theme="dark"] .action-btn {
+    background: rgba(44, 62, 80, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .action-btn:hover {
+    background: rgba(44, 62, 80, 0.5);
+    border: 1px solid rgba(139, 111, 71, 0.6);
+}
+
+[data-theme="dark"] .reading-time {
+    background: rgba(44, 62, 80, 0.4);
+}
+
+[data-theme="dark"] .progress-bar {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .favorite-btn {
+    background: rgba(44, 62, 80, 0.8);
+    color: var(--warm-brown);
+}
+
+[data-theme="dark"] .favorite-btn:hover {
+    background: rgba(44, 62, 80, 1);
+}
+
 [data-theme="dark"] .poem-author {
     text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.9);
 }
@@ -373,6 +400,120 @@ body::before {
 
 .favorite-btn.favorited:hover {
     background: var(--deep-navy);
+}
+
+/* Reading Progress and New Features */
+.poem-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.reading-time {
+    background: rgba(123, 167, 209, 0.2);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    backdrop-filter: blur(10px);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-blue), var(--warm-brown));
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.poem-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+
+.rating-container {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.star {
+    font-size: 16px;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.star.filled {
+    color: #ffd700;
+}
+
+.star:hover {
+    color: #ffd700;
+}
+
+.poem-status {
+    position: absolute;
+    top: 50px;
+    right: 15px;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: rgba(139, 111, 71, 0.8);
+    color: white;
+    display: none;
+}
+
+.poem-status.new {
+    background: rgba(46, 204, 113, 0.8);
+    display: block;
+}
+
+.poem-status.read {
+    background: rgba(52, 152, 219, 0.8);
+    display: block;
+}
+
+.poem-status.reading {
+    background: rgba(241, 196, 15, 0.8);
+    display: block;
 }
 
 .poem-card.expanded .close-btn {
