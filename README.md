@@ -1,23 +1,35 @@
-# Poetry Collection PWA
+# September 26 Offensive Operations - Poetry Collection
 
-A Progressive Web App for reading and managing a poetry collection with offline support, favorites, reading progress tracking, and more.
+A beautiful, modern Progressive Web App for reading and managing poetry with advanced features like reading progress, text-to-speech, and social sharing.
 
-## Features
+🌐 **Live Demo:** [operationseptember.netlify.app](https://operationseptember.netlify.app)
 
-### Core Poetry App Features
-- 📖 Beautiful poem display with expand/collapse
-- ❤️ Favorites system with localStorage persistence
-- 📊 Reading progress tracking
-- ⭐ 5-star rating system
-- 🔍 Search and filter functionality
-- 🎨 Dark/Light theme toggle
-- 🔊 Text-to-speech for poems
-- 📤 Share poems and generate quote images
-- 📄 PDF export functionality
-- 📱 Fully responsive design
+## ✨ Features
 
-### PWA Features
-- 🚀 **Installable**: Add to home screen on mobile/desktop
+### 📚 Core Poetry Features
+- **Beautiful poem display** with expand/collapse functionality
+- **Favorites system** with localStorage persistence
+- **Reading progress tracking** with visual progress bars
+- **5-star rating system** for poems
+- **Advanced search and filtering** by title, author, content
+- **Reading time estimates** based on word count
+- **Status indicators** (new, reading, read)
+
+### 🎨 User Experience
+- **Dark/Light theme toggle** with smooth transitions
+- **Responsive design** optimized for all devices
+- **Smooth animations** and glassmorphism effects
+- **Professional modal system** (no browser alerts)
+- **Touch-friendly interface** for mobile devices
+
+### 🔊 Media Features
+- **Text-to-speech** with play/pause controls
+- **Share poems** via native sharing API
+- **Generate quote images** with custom canvas graphics
+- **PDF export** functionality for collections
+
+### 📱 Progressive Web App
+- **Installable** on mobile and desktop devices
 - 📶 **Offline Support**: Works without internet connection
 - 🔄 **Background Sync**: Syncs data when back online
 - 🔔 **Push Notifications**: Ready for future notification features

@@ -192,79 +192,250 @@ class TextToSpeechManager {
     }
 }
 
-class ShareManager {
-    static sharePoem(poem, quote = null) {
-        const text = quote || poem.getPreview();
-        const shareText = `"${text}"\n\n- ${poem.title} by ${poem.author}`;
+class ModalManager {
+    static activeModal = null;
+
+    static createModal(title, content, actions = []) {
+        // Close any existing modal
+        this.closeModal();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
         
-        if (navigator.share) {
-            navigator.share({
-                title: poem.title,
-                text: shareText,
-                url: window.location.href
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        
+        modal.innerHTML = `
+            <div class="modal-header">
+                <h3 class="modal-title">${title}</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-content">
+                ${content}
+            </div>
+            <div class="modal-actions">
+                ${actions.map(action => 
+                    `<button class="modal-btn ${action.type || ''}" data-action="${action.action || ''}">${action.text}</button>`
+                ).join('')}
+            </div>
+        `;
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Setup event listeners
+        const closeBtn = modal.querySelector('.modal-close');
+        closeBtn.addEventListener('click', () => this.closeModal());
+
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                this.closeModal();
+            }
+        });
+
+        // Close on Escape key
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeModal();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+
+        // Setup action buttons
+        const actionBtns = modal.querySelectorAll('.modal-btn[data-action]');
+        actionBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.target.dataset.action;
+                if (action === 'close') {
+                    this.closeModal();
+                } else if (this.actionHandler) {
+                    this.actionHandler(action, e.target);
+                }
             });
-        } 
-        else {
-            // Fallback: copy to clipboard
-            navigator.clipboard.writeText(shareText).then(() => {
-                alert('Poem copied to clipboard!');
-            }).catch(() => {
-                // Final fallback: show in alert
-                alert(`Share this poem:\n\n${shareText}`);
-            });
+        });
+
+        // Show modal with animation
+        setTimeout(() => overlay.classList.add('active'), 10);
+        
+        this.activeModal = overlay;
+        return overlay;
+    }
+
+    static closeModal() {
+        if (this.activeModal) {
+            this.activeModal.classList.remove('active');
+            setTimeout(() => {
+                if (this.activeModal && this.activeModal.parentNode) {
+                    this.activeModal.parentNode.removeChild(this.activeModal);
+                }
+                this.activeModal = null;
+            }, 300);
         }
     }
 
-    static generateQuoteImage(poem, quote) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+    static showShareModal(poem) {
+        const content = `
+            <p>Share "${poem.title}" by ${poem.author}</p>
+            <div class="share-options">
+                <div class="share-option" data-share="native">
+                    <span class="share-option-icon">📱</span>
+                    <span class="share-option-text">Native Share</span>
+                </div>
+                <div class="share-option" data-share="copy">
+                    <span class="share-option-icon">📋</span>
+                    <span class="share-option-text">Copy Text</span>
+                </div>
+                <div class="share-option" data-share="quote">
+                    <span class="share-option-icon">🖼️</span>
+                    <span class="share-option-text">Quote Image</span>
+                </div>
+            </div>
+            <div class="copy-feedback">✓ Copied to clipboard!</div>
+        `;
+
+        const actions = [
+            { text: 'Close', action: 'close', type: 'primary' }
+        ];
+
+        const modal = this.createModal('Share Poem', content, actions);
         
-        canvas.width = 800;
-        canvas.height = 600;
-        
-        // Background gradient
-        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-        gradient.addColorStop(0, '#7BA7D1');
-        gradient.addColorStop(1, '#8B6F47');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Text styling
-        ctx.fillStyle = 'white';
-        ctx.textAlign = 'center';
-        ctx.font = '24px Georgia, serif';
-        
-        // Quote text (wrapped)
-        const words = quote.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-            const testLine = currentLine + word + ' ';
-            if (ctx.measureText(testLine).width > canvas.width - 100 && currentLine !== '') {
-                lines.push(currentLine);
-                currentLine = word + ' ';
-            } else {
-                currentLine = testLine;
-            }
-        }
-        lines.push(currentLine);
-        
-        // Draw quote
-        const startY = canvas.height / 2 - (lines.length * 30) / 2;
-        lines.forEach((line, index) => {
-            ctx.fillText(`"${line}"`, canvas.width / 2, startY + index * 35);
+        // Setup share option handlers
+        const shareOptions = modal.querySelectorAll('.share-option');
+        shareOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const shareType = e.currentTarget.dataset.share;
+                this.handleShare(poem, shareType, modal);
+            });
         });
-        
-        // Attribution
-        ctx.font = '18px Georgia, serif';
-        ctx.fillText(`- ${poem.title} by ${poem.author}`, canvas.width / 2, startY + lines.length * 35 + 50);
-        
-        // Download
-        const link = document.createElement('a');
-        link.download = `${poem.title.replace(/\s+/g, '_')}_quote.png`;
-        link.href = canvas.toDataURL();
-        link.click();
+    }
+
+    static handleShare(poem, shareType, modal) {
+        const text = poem.getPreview();
+        const shareText = `"${text}"\n\n- ${poem.title} by ${poem.author}`;
+
+        switch (shareType) {
+            case 'native':
+                if (navigator.share) {
+                    navigator.share({
+                        title: poem.title,
+                        text: shareText,
+                        url: window.location.href
+                    }).catch(() => {
+                        this.showCopyFeedback(modal, 'Native sharing not available');
+                    });
+                } else {
+                    this.showCopyFeedback(modal, 'Native sharing not supported');
+                }
+                break;
+                
+            case 'copy':
+                navigator.clipboard.writeText(shareText).then(() => {
+                    this.showCopyFeedback(modal, 'Copied to clipboard!');
+                }).catch(() => {
+                    this.showCopyFeedback(modal, 'Failed to copy');
+                });
+                break;
+                
+            case 'quote':
+                ShareManager.generateQuoteImage(poem, text);
+                this.showCopyFeedback(modal, 'Quote image downloaded!');
+                break;
+        }
+    }
+
+    static showCopyFeedback(modal, message) {
+        const feedback = modal.querySelector('.copy-feedback');
+        if (feedback) {
+            feedback.textContent = message;
+            feedback.classList.add('show');
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2000);
+        }
+    }
+
+    static showSuccessModal(title, message) {
+        const content = `<p>${message}</p>`;
+        const actions = [
+            { text: 'OK', action: 'close', type: 'primary' }
+        ];
+        this.createModal(title, content, actions);
+    }
+
+    static showErrorModal(title, message) {
+        const content = `<p style="color: #e74c3c;">⚠️ ${message}</p>`;
+        const actions = [
+            { text: 'OK', action: 'close', type: 'primary' }
+        ];
+        this.createModal(title, content, actions);
+    }
+}
+
+class ShareManager {
+    static sharePoem(poem, quote = null) {
+        ModalManager.showShareModal(poem);
+    }
+
+    static generateQuoteImage(poem, quote) {
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#7BA7D1');
+            gradient.addColorStop(1, '#8B6F47');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Text styling
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.font = '24px Georgia, serif';
+            
+            // Quote text (wrapped)
+            const words = quote.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (const word of words) {
+                const testLine = currentLine + word + ' ';
+                if (ctx.measureText(testLine).width > canvas.width - 100 && currentLine !== '') {
+                    lines.push(currentLine);
+                    currentLine = word + ' ';
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            lines.push(currentLine);
+            
+            // Draw quote
+            const startY = canvas.height / 2 - (lines.length * 30) / 2;
+            lines.forEach((line, index) => {
+                ctx.fillText(`"${line}"`, canvas.width / 2, startY + index * 35);
+            });
+            
+            // Attribution
+            ctx.font = '18px Georgia, serif';
+            ctx.fillText(`- ${poem.title} by ${poem.author}`, canvas.width / 2, startY + lines.length * 35 + 50);
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = `${poem.title.replace(/\s+/g, '_')}_quote.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            
+            return true;
+        } catch (error) {
+            console.error('Error generating quote image:', error);
+            ModalManager.showErrorModal('Error', 'Failed to generate quote image. Please try again.');
+            return false;
+        }
     }
 }
 

@@ -44,6 +44,7 @@ body {
     background-attachment: fixed;
     background-repeat: no-repeat;
     min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
     color: var(--text-primary);
     transition: var(--transition-smooth);
 }
@@ -223,6 +224,39 @@ body::before {
 
 [data-theme="dark"] .favorite-btn:hover {
     background: rgba(44, 62, 80, 1);
+}
+
+[data-theme="dark"] .modal {
+    background: rgba(44, 62, 80, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .modal-btn {
+    background: rgba(44, 62, 80, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .modal-btn:hover {
+    background: rgba(44, 62, 80, 1);
+    border: 1px solid rgba(139, 111, 71, 0.6);
+}
+
+[data-theme="dark"] .share-option {
+    background: rgba(44, 62, 80, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .share-option:hover {
+    background: rgba(44, 62, 80, 1);
+    border: 1px solid rgba(139, 111, 71, 0.6);
 }
 
 [data-theme="dark"] .poem-author {
@@ -507,6 +541,183 @@ body::before {
 .poem-status.reading {
     background: rgba(241, 196, 15, 0.8);
     display: block;
+}
+
+/* Modal System */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.modal-overlay.active .modal {
+    transform: scale(1) translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.modal-content {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    backdrop-filter: blur(15px);
+    font-weight: 500;
+}
+
+.modal-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px var(--shadow-light);
+}
+
+.modal-btn.primary {
+    background: var(--warm-brown);
+    color: white;
+    border: 1px solid var(--warm-brown);
+}
+
+.modal-btn.primary:hover {
+    background: var(--deep-navy);
+    border: 1px solid var(--deep-navy);
+}
+
+.share-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.share-option {
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    background: var(--card-bg);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    backdrop-filter: blur(15px);
+}
+
+.share-option:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--shadow-light);
+}
+
+.share-option-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.share-option-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.copy-feedback {
+    background: var(--warm-brown);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+    text-align: center;
+    margin: 10px 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.copy-feedback.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .poem-card.expanded .close-btn {
